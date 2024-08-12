@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "1PAHmIm4NcP0BBh9GOoUsGYqQy9wZLafXEh5vKXTrdY=",
+  "Source": "Dopameter.API",
+  "BasePath": "_content/Dopameter.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

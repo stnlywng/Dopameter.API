@@ -1,0 +1,6 @@
+@Dopameter_HostAddress = http://localhost:5239
+
+GET {{Dopameter_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
