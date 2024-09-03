@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using Dopameter.Common.Models;
 using Dopameter.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mysqlx;
 
@@ -11,16 +13,19 @@ public class GremlinController : ControllerBase
 {
     private readonly IConfiguration _config;
     private readonly IGremlinRepository _gremlinRepository;
+    private readonly IActivityRepository _activityRepository;
     private readonly ILogger<GremlinController> _logger;
 
-    public GremlinController(IConfiguration config, IGremlinRepository gremlinRepository, ILogger<GremlinController> logger)
+    public GremlinController(IConfiguration config, IGremlinRepository gremlinRepository, IActivityRepository activityRepository, ILogger<GremlinController> logger)
     {
         _config = config;
         _gremlinRepository = gremlinRepository;
+        _activityRepository = activityRepository;
         _logger = logger;
     }
     
     // Returning a Gremlin by ID
+    [Authorize]
     [HttpGet("{gremlinId}")]
     public async Task<ActionResult<Gremlin>> GetGremlinById(int gremlinId)
     {
@@ -38,9 +43,13 @@ public class GremlinController : ControllerBase
     }
     
     // Returning all Gremlins for a user
-    [HttpGet("user/{userId}")]
-    public async Task<ActionResult<IEnumerable<Gremlin>>> GetGremlinsByUser(int userId)
+    [Authorize]
+    [HttpGet("currentgremlins")]
+    public async Task<ActionResult<IEnumerable<Gremlin>>> GetGremlinsByUser()
     {
+        // Take the userId given through the JWT, and then change it to an integer and assign it to userId.
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        
         _logger.LogInformation("Called: " + nameof(GetGremlinsByUser));
         try
         {
@@ -55,9 +64,13 @@ public class GremlinController : ControllerBase
     }
     
     // Returning all Gremlins for a user
-    [HttpGet("old/user/{userId}")]
-    public async Task<ActionResult<IEnumerable<Gremlin>>> GetOldGremlinsByUser(int userId)
+    [Authorize]
+    [HttpGet("oldgremlins")]
+    public async Task<ActionResult<IEnumerable<Gremlin>>> GetOldGremlinsByUser()
     {
+        // Take the userId given through the JWT, and then change it to an integer and assign it to userId.
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        
         _logger.LogInformation("Called: " + nameof(GetOldGremlinsByUser));
         try
         {
@@ -67,59 +80,101 @@ public class GremlinController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError($"Error in {nameof(GetOldGremlinsByUser)} : {ex.Message} with stack trace: {ex.StackTrace}");
-            return NotFound(new { Message = $"Old Gremlins for user with ID {userId} were not found." });
+            return NotFound(new { Message = $"Old Gremlins for user with ID {userId} were not found, or Error" });
         }
     }
     
-    // Deleting a Gremlin by ID
+    // Deleting a Gremlin by ID -- TO-DO delete activity with gremlin if no other using it. [DONE?]
+    // TO-DO only allow if the userID whatever is validated. Authentication. [Nahh it's good enough]
+    [Authorize]
     [HttpDelete("{gremlinId}")]
     public async Task<ActionResult> DeleteGremlin(int gremlinId)
     {
+        // Take the userId given through the JWT, and then change it to an integer and assign it to userId.
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        
         _logger.LogInformation("Called: " + nameof(DeleteGremlin));
         try
         {
+            var gremlin = await _gremlinRepository.GetGremlinById(gremlinId);
+            var gremlinActivityName = gremlin.activityName;
+            
             await _gremlinRepository.DeleteGremlin(gremlinId);
+            await _activityRepository.DeleteActivityIfNotAssociatedWithAnyMoreGremlins(userId, gremlinActivityName);
             return Ok();
         }
         catch (Exception ex)
         {
             _logger.LogError($"Error in {nameof(DeleteGremlin)} : {ex.Message} with stack trace: {ex.StackTrace}");
-            return NotFound(new { Message = $"Gremlin with ID {gremlinId} was not found." });
+            return NotFound(new { Message = $"Couldn't find Gremlin with ID {gremlinId}, or Error" });
         }
     }
     
-    // Updating a Gremlin
+    // Updating a Gremlin TO-DO update activity with gremlin
+    [Authorize]
     [HttpPut]
-    public async Task<ActionResult<Gremlin>> UpdateGremlin(Gremlin gremlin)
+    public async Task<ActionResult<Gremlin>> UpdateGremlin([FromBody] Gremlin gremlin)
     {
+        // Take the userId given through the JWT, and then change it to an integer and assign it to userId.
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        
         _logger.LogInformation("Called: " + nameof(UpdateGremlin));
         try
         {
             var result = await _gremlinRepository.UpdateGremlin(gremlin);
+            await _activityRepository.CreateOrUpdatePastActivity(userId, gremlin.activityName, gremlin.kindOfGremlin, gremlin.intensity);
             return Ok(result);
         }
         catch (Exception ex)
         {
             _logger.LogError($"Error in {nameof(UpdateGremlin)} : {ex.Message} with stack trace: {ex.StackTrace}");
-            return NotFound(new { Message = $"Gremlin with ID {gremlin.gremlinID} was not found." });
+            return NotFound(new { Message = $"Error with UpdateGremlin." });
         }
     }
     
-    // Creating a Gremlin
-    [HttpPost("{userId}")]
-    public async Task<ActionResult> CreateGremlin(int userId, Gremlin gremlin)
+    // Creating a Gremlin TO-DO add Activity too.
+    [Authorize]
+    [HttpPost]
+    public async Task<ActionResult> CreateGremlin([FromBody] Gremlin gremlin)
     {
+        // Take the userId given through the JWT, and then change it to an integer and assign it to userId.
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        gremlin.dateOfBirth = DateTime.Now;
+        gremlin.lastFedDate = DateTime.Now;
+        
         _logger.LogInformation("Called: " + nameof(CreateGremlin));
         try
         {
             await _gremlinRepository.CreateGremlin(userId, gremlin);
+            await _activityRepository.CreateOrUpdatePastActivity(userId, gremlin.activityName, gremlin.kindOfGremlin, gremlin.intensity);
             return Ok();
         }
         catch (Exception ex)
         {
             _logger.LogError($"Error in {nameof(CreateGremlin)} : {ex.Message} with stack trace: {ex.StackTrace}");
-            return NotFound(new { Message = $"Gremlin with ID {gremlin.gremlinID} was not found." });
+            return NotFound(new { Message = $"Error with CreateGremlin" });
         }
     }
+    
+    // Feeding a Gremlin
+    // [Authorize]
+    // [HttpPost("feed/{gremlinId}")]
+    // public async Task<ActionResult> FeedGremlin(int gremlinId)
+    // {
+    //     // Take the userId given through the JWT, and then change it to an integer and assign it to userId.
+    //     var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+    //     
+    //     _logger.LogInformation("Called: " + nameof(FeedGremlin));
+    //     try
+    //     {
+    //         await _gremlinRepository.FeedGremlin(gremlinId);
+    //         return Ok();
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         _logger.LogError($"Error in {nameof(FeedGremlin)} : {ex.Message} with stack trace: {ex.StackTrace}");
+    //         return NotFound(new { Message = $"Error with FeedGremlin" });
+    //     }
+    // }
     
 }

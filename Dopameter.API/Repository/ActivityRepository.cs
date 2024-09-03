@@ -5,7 +5,7 @@ using MySql.Data.MySqlClient;
 
 namespace Dopameter.Repository;
 
-public class ActivityRepository
+public class ActivityRepository : IActivityRepository
 {
     private readonly IConfiguration _config;
     private readonly ILogger<GremlinRepository> _logger;
@@ -73,4 +73,20 @@ public class ActivityRepository
                 commandType: CommandType.StoredProcedure);
         }
     }
+    
+    public async Task DeleteActivityIfNotAssociatedWithAnyMoreGremlins(int userId, string activityName)
+    {
+        using (MySqlConnection connection = new MySqlConnection(_config.GetConnectionString("DefaultConnection")))
+        {
+            var parameters = new DynamicParameters();
+            parameters.Add("inputUserID", userId, DbType.Int32, ParameterDirection.Input);
+            parameters.Add("inputActivityName", activityName, DbType.String, ParameterDirection.Input);
+
+            await connection.ExecuteAsync(
+                "DeleteActivityIfNotAssociatedWithAnyMoreGremlins", 
+                parameters, 
+                commandType: CommandType.StoredProcedure);
+        }
+    }
+    
 }

@@ -84,7 +84,6 @@ public class GremlinRepository : IGremlinRepository
                 parameters,
                 commandType: CommandType.StoredProcedure);
             
-            // See if this gremlin is the last one with its activity. If so, delete the activity. Hard to impl.
         }
     }
     
@@ -98,8 +97,6 @@ public class GremlinRepository : IGremlinRepository
             parameters.Add("inputActivityName", gremlin.activityName, DbType.String, ParameterDirection.Input);
             parameters.Add("inputKindOfGremlin", gremlin.kindOfGremlin, DbType.Int16, ParameterDirection.Input);
             parameters.Add("inputIntensity", gremlin.intensity, DbType.Int32, ParameterDirection.Input);
-            parameters.Add("inputDateOfBirth", gremlin.dateOfBirth, DbType.DateTime, ParameterDirection.Input);
-            parameters.Add("inputLastFedDate", gremlin.lastFedDate, DbType.DateTime, ParameterDirection.Input);
             
             try
             {
@@ -125,7 +122,6 @@ public class GremlinRepository : IGremlinRepository
         {
             var parameters = new DynamicParameters();
             parameters.Add("inputUserID", userID, DbType.Int32, ParameterDirection.Input);
-            parameters.Add("inputGremlinID", gremlin.gremlinID, DbType.Int32, ParameterDirection.Input);
             parameters.Add("inputName", gremlin.name, DbType.String, ParameterDirection.Input);
             parameters.Add("inputActivityName", gremlin.activityName, DbType.String, ParameterDirection.Input);
             parameters.Add("inputKindOfGremlin", gremlin.kindOfGremlin, DbType.Int16, ParameterDirection.Input);
@@ -140,4 +136,13 @@ public class GremlinRepository : IGremlinRepository
         }
 
     }
+    
+    public async Task FeedGremlin(int gremlinId)
+    {
+        using (MySqlConnection connection = new MySqlConnection(_config.GetConnectionString("DefaultConnection")))
+        {
+            // Run SQL query to update the last fed date of the gremlin to datetime now, 
+        }
+    }
+    
 }
