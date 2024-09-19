@@ -48,27 +48,28 @@ builder.Services.AddAuthentication(options =>
 //             .AllowCredentials());
 // });
 
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(builder =>
-    {
-        builder.WithOrigins("http://localhost:5173")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials(); // Optional if you need to send cookies or other credentials
-    });
-});
+// builder.Services.AddCors(options =>
+// {
+//     options.AddDefaultPolicy(builder =>
+//     {
+//         builder.WithOrigins("http://localhost:5173")
+//             .AllowAnyHeader()
+//             .AllowAnyMethod()
+//             .AllowCredentials(); // Optional if you need to send cookies or other credentials
+//     });
+// });
 
 var app = builder.Build();
+
+app.UseSwagger();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseCors();
+// app.UseCors();
 
 app.UseHttpsRedirection();
 

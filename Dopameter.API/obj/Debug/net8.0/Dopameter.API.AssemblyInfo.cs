@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Dopameter.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8b1b3527817f864b1642a46e03621f7fed45f176")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f0dfa2c283301a157d3d72a97a11fec80bae4ed9")]
 [assembly: System.Reflection.AssemblyProductAttribute("Dopameter.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Dopameter.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
