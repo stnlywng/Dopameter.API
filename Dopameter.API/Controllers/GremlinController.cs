@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using Dopameter.BusinessLogic;
+using Dopameter.Common.DTOs;
 using Dopameter.Common.Models;
 using Dopameter.Repository;
 using Microsoft.AspNetCore.Authorization;
@@ -156,25 +158,43 @@ public class GremlinController : ControllerBase
         }
     }
     
-    // Feeding a Gremlin
+    // For testing. Not used in the app. Archive
     // [Authorize]
-    // [HttpPost("feed/{gremlinId}")]
-    // public async Task<ActionResult> FeedGremlin(int gremlinId)
+    // [HttpGet("feedhistory/{gremlinId}")]
+    // public async Task<ActionResult<IEnumerable<FeedHistoryRow>>> GetGremlinFeedHistory(int gremlinId)
     // {
-    //     // Take the userId given through the JWT, and then change it to an integer and assign it to userId.
-    //     var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-    //     
-    //     _logger.LogInformation("Called: " + nameof(FeedGremlin));
+    //     _logger.LogInformation("Called: " + nameof(GetGremlinWeight));
     //     try
     //     {
-    //         await _gremlinRepository.FeedGremlin(gremlinId);
-    //         return Ok();
+    //         var result = await _gremlinRepository.GetGremlinFeedingHistory(gremlinId);
+    //         return Ok(result);
     //     }
     //     catch (Exception ex)
     //     {
-    //         _logger.LogError($"Error in {nameof(FeedGremlin)} : {ex.Message} with stack trace: {ex.StackTrace}");
-    //         return NotFound(new { Message = $"Error with FeedGremlin" });
+    //         _logger.LogError($"Error in {nameof(GetGremlinWeight)} : {ex.Message} with stack trace: {ex.StackTrace}");
+    //         return NotFound(new { Message = $"Gremlin with ID {gremlinId} was not found." });
     //     }
     // }
+    
+    [Authorize]
+    [HttpPost("feed")]
+    public async Task<ActionResult> FeedGremlin([FromBody] FeedGremlinRequest _feedGremlinRequest)
+    {
+        _logger.LogInformation("Called: " + nameof(FeedGremlin));
+        var gremlinId = _feedGremlinRequest.gremlinID;
+        var percentFed = _feedGremlinRequest.percentFed;
+        try
+        {
+            var gremlinInCheck = await _gremlinRepository.GetGremlinById(gremlinId);
+            // (int gremlinId, int oldLastSetWeight, DateTime lastFedDate, int percentFed)
+            await _gremlinRepository.FeedGremlin(gremlinId, gremlinInCheck.lastSetWeight, gremlinInCheck.lastFedDate, percentFed);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error in {nameof(FeedGremlin)} : {ex.Message} with stack trace: {ex.StackTrace}");
+            return BadRequest(new { Message = $"Error with FeedGremlin" });
+        }
+    }
     
 }

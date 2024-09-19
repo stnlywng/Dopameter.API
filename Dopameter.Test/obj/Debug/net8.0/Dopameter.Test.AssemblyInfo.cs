@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Dopameter.Test")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e72b546866f40802af9e60e6850ba70f5090a14c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8b1b3527817f864b1642a46e03621f7fed45f176")]
 [assembly: System.Reflection.AssemblyProductAttribute("Dopameter.Test")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Dopameter.Test")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

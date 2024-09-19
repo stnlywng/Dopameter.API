@@ -1,6 +1,7 @@
 using Dopameter.Common.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Dopameter.Common.DTOs;
 
 namespace Dopameter.Repository
 {
@@ -12,5 +13,7 @@ namespace Dopameter.Repository
         Task DeleteGremlin(int gremlinId);
         Task<Gremlin> UpdateGremlin(Gremlin gremlin);
         Task CreateGremlin(int userId, Gremlin gremlin);
+        Task FeedGremlin(int gremlinId, int oldLastSetWeight, DateTime lastFedDate, int percentFed);
+        Task SetupDemoGremlins();
     }
 }
